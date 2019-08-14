@@ -41,9 +41,9 @@ namespace backend
                     {
                         var message = Encoding.UTF8.GetString(body);
                         string[] travellerData = message.Split(',');
-
                         Console.WriteLine(" Login credentials: ({0})", message);
-                        response = VerifyTraveller(travellerData[0], travellerData[1]).ToString();
+
+                        response = PrepareResponse(travellerData[0], travellerData[1]);
                         Console.WriteLine(" response ({0})", response);
                     }
                     catch (Exception e)
@@ -70,11 +70,21 @@ namespace backend
             }
         }
 
-        private static bool VerifyTraveller(string login, string password)
+        private static string PrepareResponse(string login, string password)
         {
             TravellerRepository travellerRepository = new TravellerRepository();
             Traveller traveller = travellerRepository.FindUserByLogin(login);
-            return traveller.password == password;
+            LoginResponse loginResponse;
+            if(traveller.password == password)
+            {
+                loginResponse = new LoginResponse(true,
+                    traveller.id, traveller.first_name, traveller.last_name, traveller.email, traveller.login);
+            }
+            else
+            {
+                loginResponse = new LoginResponse(false);
+            }
+            return loginResponse.ToString();
         }
     }
 }
