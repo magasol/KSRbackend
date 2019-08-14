@@ -16,7 +16,7 @@ namespace backend
             using (var channel = connection.CreateModel())
             {
                 channel.QueueDeclare(
-                    queue: "sendQueue",
+                    queue: "loginQueue",
                     durable: false, 
                     exclusive: false,
                     autoDelete: false, 
@@ -25,7 +25,7 @@ namespace backend
                 channel.BasicQos(0, 1, false);
 
                 var consumer = new EventingBasicConsumer(channel);
-                channel.BasicConsume(queue: "sendQueue", autoAck: false, consumer: consumer);
+                channel.BasicConsume(queue: "loginQueue", autoAck: false, consumer: consumer);
                 Console.WriteLine(" [x] Awaiting RPC requests");
 
                 consumer.Received += (model, ea) =>
