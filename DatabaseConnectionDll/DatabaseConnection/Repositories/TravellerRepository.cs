@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Linq;
 using DatabaseConnection.entities;
 
 namespace DatabaseConnection.Repositories
@@ -13,7 +9,7 @@ namespace DatabaseConnection.Repositories
         {
             using (var context = new GenericContext<Traveller>())
             {
-                var item = context.Entity.Where<Traveller>(t => t.email == email).Single();
+                var item = context.Entity.Where<Traveller>(t => t.email == email).SingleOrDefault();
                 if (item == null)
                 {
                     return null;
@@ -26,7 +22,7 @@ namespace DatabaseConnection.Repositories
         {
             using (var context = new GenericContext<Traveller>())
             {
-                var item = context.Entity.Where<Traveller>(t => t.login == login).Single();
+                var item = context.Entity.Where<Traveller>(t => t.login == login).SingleOrDefault();
                 if (item == null)
                 {
                     return null;

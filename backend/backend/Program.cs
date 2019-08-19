@@ -9,6 +9,9 @@ namespace backend
 {
     class Program
     {
+        internal static RegisterService RegisterService => RegisterService;
+        internal static LoginService LoginService => LoginService;
+
         static void Main(string[] args)
         {
             var factory = new ConnectionFactory() { HostName = "localhost" };
@@ -22,16 +25,27 @@ namespace backend
                     autoDelete: false, 
                     arguments: null);
 
+                channel.QueueDeclare(
+                    queue: "registerQueue",
+                    durable: false,
+                    exclusive: false,
+                    autoDelete: false,
+                    arguments: null);
+
                 channel.BasicQos(0, 1, false);
 
-                var consumer = new EventingBasicConsumer(channel);
-                channel.BasicConsume(queue: "loginQueue", autoAck: false, consumer: consumer);
+                var loginConsumer = new EventingBasicConsumer(channel);
+                var registerConsumer = new EventingBasicConsumer(channel);
+
+                channel.BasicConsume(queue: "loginQueue", autoAck: false, consumer: loginConsumer);
+                channel.BasicConsume(queue: "registerQueue", autoAck: false, consumer: registerConsumer);
+
                 Console.WriteLine(" [x] Awaiting RPC requests");
 
-                consumer.Received += (model, ea) =>
+                loginConsumer.Received += (model, ea) =>
                 {
                     string response = null;
-
+                    
                     var body = ea.Body;
                     var props = ea.BasicProperties;
                     var replyProps = channel.CreateBasicProperties();
@@ -40,16 +54,13 @@ namespace backend
                     try
                     {
                         var message = Encoding.UTF8.GetString(body);
-                        string[] travellerData = message.Split(',');
-                        Console.WriteLine(" Login credentials: ({0})", message);
-
-                        response = PrepareResponse(travellerData[0], travellerData[1]);
+                        response = LoginService.PrepareLoginResponse(message);
                         Console.WriteLine(" response ({0})", response);
                     }
                     catch (Exception e)
                     {
                         Console.WriteLine(" [.] " + e.Message);
-                        response = "";
+                        response = new UserDataResponse(false).ToString();
                     }
                     finally
                     {
@@ -65,26 +76,45 @@ namespace backend
                             multiple: false);
                     }
                 };
+
+                registerConsumer.Received += (model, ea) =>
+                {
+                    string response = null;
+
+                    var body = ea.Body;
+                    var props = ea.BasicProperties;
+                    var replyProps = channel.CreateBasicProperties();
+                    replyProps.CorrelationId = props.CorrelationId;
+
+                    try
+                    {
+                        var message = Encoding.UTF8.GetString(body);
+                        response = RegisterService.PrepareRegisterResponse(message);
+                        Console.WriteLine(" response ({0})", response);
+                    }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine(" [.] " + e.Message);
+                        response = new UserDataResponse(false).ToString();
+                    }
+                    finally
+                    {
+                        var responseBytes = Encoding.UTF8.GetBytes(response);
+                        channel.BasicPublish(
+                            exchange: "",
+                            routingKey: props.ReplyTo,
+                            basicProperties: replyProps,
+                            body: responseBytes);
+
+                        channel.BasicAck(
+                            deliveryTag: ea.DeliveryTag,
+                            multiple: false);
+                    }
+                };
+
                 Console.WriteLine(" Press [enter] to exit.");
                 Console.ReadLine();
             }
-        }
-
-        private static string PrepareResponse(string login, string password)
-        {
-            TravellerRepository travellerRepository = new TravellerRepository();
-            Traveller traveller = travellerRepository.FindUserByLogin(login);
-            LoginResponse loginResponse;
-            if(traveller.password == password)
-            {
-                loginResponse = new LoginResponse(true,
-                    traveller.id, traveller.first_name, traveller.last_name, traveller.email, traveller.login);
-            }
-            else
-            {
-                loginResponse = new LoginResponse(false);
-            }
-            return loginResponse.ToString();
-        }
+        }        
     }
 }

@@ -64,6 +64,14 @@ namespace DatabaseConnection.Repositories
                 context.SaveChanges();
             }
         }
+
+        public int NextId()
+        {
+            using (var context = new GenericContext<T>())
+            {
+                return context.Entity.Max(x => x.id) + 1;
+            }
+        }
     }
 }
 

@@ -1,9 +1,9 @@
 ﻿
 namespace backend
 {
-    public class LoginResponse
+    public class UserDataResponse
     {
-        public LoginResponse(bool Status,
+        public UserDataResponse(bool Status,
             int UserID = 0, 
             string FirstName = "",
             string LastName = "", 

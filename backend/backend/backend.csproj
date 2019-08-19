@@ -136,7 +136,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="LoginResponse.cs" />
+    <Compile Include="LoginService.cs" />
+    <Compile Include="RegisterService.cs" />
+    <Compile Include="UserDataResponse.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
