@@ -3,6 +3,7 @@ using DatabaseConnection.Repositories;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using System;
+using System.Collections.Generic;
 using System.Text;
 
 namespace backend
@@ -111,6 +112,10 @@ namespace backend
                             multiple: false);
                     }
                 };
+                RouteRepository routeRepository = new RouteRepository();
+                List<SearchResult> searchResult = routeRepository.SearchForTrainConnection(Convert.ToDateTime("2019-03-12"), "Słupsk", "Gdańsk");
+                searchResult.ForEach((result) => { Console.WriteLine(result); });
+                
 
                 Console.WriteLine(" Press [enter] to exit.");
                 Console.ReadLine();
