@@ -12,6 +12,7 @@ namespace backend
     {
         internal static RegisterService RegisterService => RegisterService;
         internal static LoginService LoginService => LoginService;
+        internal static SearchService SearchService => SearchService;
 
         static void Main(string[] args)
         {
@@ -33,13 +34,22 @@ namespace backend
                     autoDelete: false,
                     arguments: null);
 
+                channel.QueueDeclare(
+                    queue: "searchQueue",
+                    durable: false,
+                    exclusive: false,
+                    autoDelete: false,
+                    arguments: null);
+
                 channel.BasicQos(0, 1, false);
 
                 var loginConsumer = new EventingBasicConsumer(channel);
                 var registerConsumer = new EventingBasicConsumer(channel);
+                var searchConsumer = new EventingBasicConsumer(channel);
 
                 channel.BasicConsume(queue: "loginQueue", autoAck: false, consumer: loginConsumer);
                 channel.BasicConsume(queue: "registerQueue", autoAck: false, consumer: registerConsumer);
+                channel.BasicConsume(queue: "searchQueue", autoAck: false, consumer: searchConsumer);
 
                 Console.WriteLine(" [x] Awaiting RPC requests");
 
@@ -112,10 +122,41 @@ namespace backend
                             multiple: false);
                     }
                 };
-                RouteRepository routeRepository = new RouteRepository();
-                List<SearchResult> searchResult = routeRepository.SearchForTrainConnection(Convert.ToDateTime("2019-03-12"), "Słupsk", "Gdańsk");
-                searchResult.ForEach((result) => { Console.WriteLine(result); });
-                
+
+                searchConsumer.Received += (model, ea) =>
+                {
+                    string response = null;
+
+                    var body = ea.Body;
+                    var props = ea.BasicProperties;
+                    var replyProps = channel.CreateBasicProperties();
+                    replyProps.CorrelationId = props.CorrelationId;
+
+                    try
+                    {
+                        var message = Encoding.UTF8.GetString(body);
+                        response = SearchService.PrepareSearchResponse(message);
+                        Console.WriteLine(" response ({0})", response);
+                    }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine(" [.] " + e.Message);
+                        response = " , , , , ";
+                    }
+                    finally
+                    {
+                        var responseBytes = Encoding.UTF8.GetBytes(response);
+                        channel.BasicPublish(
+                            exchange: "",
+                            routingKey: props.ReplyTo,
+                            basicProperties: replyProps,
+                            body: responseBytes);
+
+                        channel.BasicAck(
+                            deliveryTag: ea.DeliveryTag,
+                            multiple: false);
+                    }
+                };
 
                 Console.WriteLine(" Press [enter] to exit.");
                 Console.ReadLine();

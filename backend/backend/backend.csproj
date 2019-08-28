@@ -138,6 +138,8 @@
   <ItemGroup>
     <Compile Include="LoginService.cs" />
     <Compile Include="RegisterService.cs" />
+    <Compile Include="SearchResponse.cs" />
+    <Compile Include="SearchService.cs" />
     <Compile Include="UserDataResponse.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
