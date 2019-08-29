@@ -26,5 +26,9 @@ namespace backend
             return loginResponse.ToString();
         }
 
+        public static string PrepareEmptyLoginRepsonse()
+        {
+            return new UserDataResponse(false).ToString();
+        }
     }
 }

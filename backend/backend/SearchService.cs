@@ -41,5 +41,10 @@ namespace backend
             resultString = resultString.Remove(resultString.Length - 1, 1);
             return resultString;
         }
+
+        public static string PrepareEmptySearchRepsonse()
+        {
+            return " , , , , ";
+        }
     }
 }

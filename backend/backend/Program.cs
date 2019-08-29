@@ -1,9 +1,6 @@
-﻿using DatabaseConnection.entities;
-using DatabaseConnection.Repositories;
-using RabbitMQ.Client;
+﻿using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using System;
-using System.Collections.Generic;
 using System.Text;
 
 namespace backend
@@ -22,9 +19,9 @@ namespace backend
             {
                 channel.QueueDeclare(
                     queue: "loginQueue",
-                    durable: false, 
+                    durable: false,
                     exclusive: false,
-                    autoDelete: false, 
+                    autoDelete: false,
                     arguments: null);
 
                 channel.QueueDeclare(
@@ -53,114 +50,58 @@ namespace backend
 
                 Console.WriteLine(" [x] Awaiting RPC requests");
 
-                loginConsumer.Received += (model, ea) =>
-                {
-                    string response = null;
-                    
-                    var body = ea.Body;
-                    var props = ea.BasicProperties;
-                    var replyProps = channel.CreateBasicProperties();
-                    replyProps.CorrelationId = props.CorrelationId;
+                loginConsumer.Received += AddReceiver(channel, LoginService.PrepareLoginResponse, LoginService.PrepareEmptyLoginRepsonse);
 
-                    try
-                    {
-                        var message = Encoding.UTF8.GetString(body);
-                        response = LoginService.PrepareLoginResponse(message);
-                        Console.WriteLine(" response ({0})", response);
-                    }
-                    catch (Exception e)
-                    {
-                        Console.WriteLine(" [.] " + e.Message);
-                        response = new UserDataResponse(false).ToString();
-                    }
-                    finally
-                    {
-                        var responseBytes = Encoding.UTF8.GetBytes(response);
-                        channel.BasicPublish(
-                            exchange: "",
-                            routingKey: props.ReplyTo,
-                            basicProperties: replyProps,
-                            body: responseBytes);
-
-                        channel.BasicAck(
-                            deliveryTag: ea.DeliveryTag,
-                            multiple: false);
-                    }
-                };
-
-                registerConsumer.Received += (model, ea) =>
-                {
-                    string response = null;
-
-                    var body = ea.Body;
-                    var props = ea.BasicProperties;
-                    var replyProps = channel.CreateBasicProperties();
-                    replyProps.CorrelationId = props.CorrelationId;
-
-                    try
-                    {
-                        var message = Encoding.UTF8.GetString(body);
-                        response = RegisterService.PrepareRegisterResponse(message);
-                        Console.WriteLine(" response ({0})", response);
-                    }
-                    catch (Exception e)
-                    {
-                        Console.WriteLine(" [.] " + e.Message);
-                        response = new UserDataResponse(false).ToString();
-                    }
-                    finally
-                    {
-                        var responseBytes = Encoding.UTF8.GetBytes(response);
-                        channel.BasicPublish(
-                            exchange: "",
-                            routingKey: props.ReplyTo,
-                            basicProperties: replyProps,
-                            body: responseBytes);
-
-                        channel.BasicAck(
-                            deliveryTag: ea.DeliveryTag,
-                            multiple: false);
-                    }
-                };
-
-                searchConsumer.Received += (model, ea) =>
-                {
-                    string response = null;
-
-                    var body = ea.Body;
-                    var props = ea.BasicProperties;
-                    var replyProps = channel.CreateBasicProperties();
-                    replyProps.CorrelationId = props.CorrelationId;
-
-                    try
-                    {
-                        var message = Encoding.UTF8.GetString(body);
-                        response = SearchService.PrepareSearchResponse(message);
-                        Console.WriteLine(" response ({0})", response);
-                    }
-                    catch (Exception e)
-                    {
-                        Console.WriteLine(" [.] " + e.Message);
-                        response = " , , , , ";
-                    }
-                    finally
-                    {
-                        var responseBytes = Encoding.UTF8.GetBytes(response);
-                        channel.BasicPublish(
-                            exchange: "",
-                            routingKey: props.ReplyTo,
-                            basicProperties: replyProps,
-                            body: responseBytes);
-
-                        channel.BasicAck(
-                            deliveryTag: ea.DeliveryTag,
-                            multiple: false);
-                    }
-                };
+                registerConsumer.Received += AddReceiver(channel, RegisterService.PrepareRegisterResponse, RegisterService.PrepareEmptyRegisterRepsonse);
+                
+                searchConsumer.Received += AddReceiver(channel, SearchService.PrepareSearchResponse, SearchService.PrepareEmptySearchRepsonse);
+                
 
                 Console.WriteLine(" Press [enter] to exit.");
                 Console.ReadLine();
             }
-        }        
+        }
+
+        public delegate string prepareResponseFunction(string message);
+        public delegate string prepareEmptyResponseFunction();
+
+        private static EventHandler<BasicDeliverEventArgs> AddReceiver(IModel channel, prepareResponseFunction prepareResponse,
+           prepareEmptyResponseFunction prepareEmptyResponse)
+        {
+            return (model, ea) =>
+                {
+                    string response = null;
+
+                    var body = ea.Body;
+                    var props = ea.BasicProperties;
+                    var replyProps = channel.CreateBasicProperties();
+                    replyProps.CorrelationId = props.CorrelationId;
+
+                    try
+                    {
+                        var message = Encoding.UTF8.GetString(body);
+                        response = prepareResponse(message);
+                        Console.WriteLine(" response ({0})", response);
+                    }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine(" [.] " + e.Message);
+                        response = prepareEmptyResponse();
+                    }
+                    finally
+                    {
+                        var responseBytes = Encoding.UTF8.GetBytes(response);
+                        channel.BasicPublish(
+                            exchange: "",
+                            routingKey: props.ReplyTo,
+                            basicProperties: replyProps,
+                            body: responseBytes);
+
+                        channel.BasicAck(
+                            deliveryTag: ea.DeliveryTag,
+                            multiple: false);
+                    }
+                };
+        }
     }
 }

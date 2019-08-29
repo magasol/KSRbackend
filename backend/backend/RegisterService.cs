@@ -33,5 +33,10 @@ namespace backend
 
             return new UserDataResponse(false).ToString();
         }
+
+        public static string PrepareEmptyRegisterRepsonse()
+        {
+            return new UserDataResponse(false).ToString();
+        }
     }
 }
