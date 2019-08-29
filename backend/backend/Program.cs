@@ -11,6 +11,9 @@ namespace backend
         internal static LoginService LoginService => LoginService;
         internal static SearchService SearchService => SearchService;
 
+        public delegate string prepareResponseFunction(string message);
+        public delegate string prepareEmptyResponseFunction();
+
         static void Main(string[] args)
         {
             var factory = new ConnectionFactory() { HostName = "localhost" };
@@ -56,14 +59,10 @@ namespace backend
                 
                 searchConsumer.Received += AddReceiver(channel, SearchService.PrepareSearchResponse, SearchService.PrepareEmptySearchRepsonse);
                 
-
                 Console.WriteLine(" Press [enter] to exit.");
                 Console.ReadLine();
             }
         }
-
-        public delegate string prepareResponseFunction(string message);
-        public delegate string prepareEmptyResponseFunction();
 
         private static EventHandler<BasicDeliverEventArgs> AddReceiver(IModel channel, prepareResponseFunction prepareResponse,
            prepareEmptyResponseFunction prepareEmptyResponse)

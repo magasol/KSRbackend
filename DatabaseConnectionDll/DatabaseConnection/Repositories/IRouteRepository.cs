@@ -10,6 +10,6 @@ namespace DatabaseConnection.Repositories
 
     public interface IRouteRepository : IRepository<Route>
     {
-        List<SearchResult> SearchForTrainConnection(DateTime date, string from_station, string to_station);
+        List<TrainConnection> SearchForTrainConnection(DateTime date, string from_station, string to_station);
     }
 }

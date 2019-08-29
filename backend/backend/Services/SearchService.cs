@@ -24,10 +24,10 @@ namespace backend
                 $"toStation: {toStation}\n");
 
             RouteRepository routeRepository = new RouteRepository();
-            List<SearchResult> result = routeRepository.SearchForTrainConnection(Convert.ToDateTime(departureDate), fromStation, toStation);
+            List<TrainConnection> result = routeRepository.SearchForTrainConnection(Convert.ToDateTime(departureDate), fromStation, toStation);
 
             string resultString = "";
-            foreach (SearchResult r in result)
+            foreach (TrainConnection r in result)
             {
                 SearchResponse searchResponse
                     = new SearchResponse(

@@ -2,7 +2,7 @@
 
 namespace DatabaseConnection.Repositories
 {
-    public class SearchResult
+    public class TrainConnection
     {
         public int travel_id { get; set; }
         public string train_name { get; set; }
@@ -11,7 +11,7 @@ namespace DatabaseConnection.Repositories
         public decimal total_price { get; set; }
         public TimeSpan total_duration { get; set; }
 
-        public SearchResult(
+        public TrainConnection(
             int travel_id,
             string train_name,
             DateTime departure_date,

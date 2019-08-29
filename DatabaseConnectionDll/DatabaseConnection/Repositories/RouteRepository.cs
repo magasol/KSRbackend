@@ -11,7 +11,7 @@ namespace DatabaseConnection.Repositories
     {
         private NpgsqlConnection conn = new NpgsqlConnection("User ID=postgres;Password=adminadmin;Host=localhost;Port=5432;Database=traintickets;");
 
-        public List<SearchResult> SearchForTrainConnection(DateTime date, string from_station, string to_station)
+        public List<TrainConnection> SearchForTrainConnection(DateTime date, string from_station, string to_station)
         {
             using (var command = new NpgsqlCommand(
                 "SELECT s1.travel_id , s1.train_name, s1.departure_date, s1.departure_hour," +
@@ -46,9 +46,6 @@ namespace DatabaseConnection.Repositories
                 "ORDER BY " +
                     "s1.departure_hour;", conn))
             {
-                //command.Parameters.AddWithValue("@from_station", from_station);
-                // command.Parameters.AddWithValue("@to_station", to_station);
-                //command.Parameters.AddWithValue("@date", date)
 
                 try
                 {
@@ -72,10 +69,10 @@ namespace DatabaseConnection.Repositories
 
                     if (reader.HasRows)
                     {
-                        List<SearchResult> results = new List<SearchResult>();
+                        List<TrainConnection> results = new List<TrainConnection>();
                         while (reader.Read())
                         {
-                            results.Add(new SearchResult(
+                            results.Add(new TrainConnection(
                             reader.GetInt32(0),
                             reader.GetString(1),
                             reader.GetDateTime(2),
