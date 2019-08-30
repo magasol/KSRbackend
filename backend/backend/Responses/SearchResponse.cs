@@ -9,12 +9,14 @@ namespace backend
     class SearchResponse
     {
         public SearchResponse(
+               int RouteId = -1,
                string TrainName = "",
                string DepartureDate = "",
                string DepartureHour = "",
                string Price = "",
                string Time = "")
         {
+            this.RouteId = RouteId;
             this.TrainName = TrainName;
             this.DepartureDate = DepartureDate;
             this.DepartureHour = DepartureHour;
@@ -22,6 +24,7 @@ namespace backend
             this.Time = Time;
         }
 
+        public int RouteId { get; set; }
         public string TrainName { get; set; }
         public string DepartureDate { get; set; }
         public string DepartureHour { get; set; }
@@ -30,12 +33,12 @@ namespace backend
 
         public override string ToString()
         {
-            return TrainName + ","
+            return RouteId.ToString() + ","
+                + TrainName + ","
                 + DepartureDate + ","
                 + DepartureHour + ","
                 + Price + ","
                 + Time;
-
         }
     }
 }

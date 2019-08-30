@@ -31,6 +31,7 @@ namespace backend
             {
                 SearchResponse searchResponse
                     = new SearchResponse(
+                        r.travel_id,
                         r.train_name,
                         r.departure_date.ToString(),
                         r.departure_hour.ToString(),
