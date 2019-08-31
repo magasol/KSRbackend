@@ -33,11 +33,11 @@ namespace backend
 
         public override string ToString()
         {
-            return RouteId.ToString() + ","
-                + TrainName + ","
-                + DepartureDate + ","
-                + DepartureHour + ","
-                + Price + ","
+            return RouteId.ToString() + "?"
+                + TrainName + "?"
+                + DepartureDate + "?"
+                + DepartureHour + "?"
+                + Price + "?"
                 + Time;
         }
     }

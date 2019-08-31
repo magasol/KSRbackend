@@ -10,7 +10,7 @@ namespace backend
 
         public static string PrepareRegisterResponse(string registerRequest)
         {
-            string[] registerParams = registerRequest.Split(',');
+            string[] registerParams = registerRequest.Split('?');
             Console.WriteLine(" Register credentials: ({0})", registerRequest);
 
             TravellerRepository travellerRepository = new TravellerRepository();

@@ -13,7 +13,7 @@ namespace backend
 
         public static string PrepareSearchResponse(string searchRequest)
         {
-            string[] searchParams = searchRequest.Split(',');
+            string[] searchParams = searchRequest.Split('?');
             string departureDate = searchParams[(int)SearchParam.DepartureDate];
             string fromStation = searchParams[(int)SearchParam.FromStation];
             string toStation = searchParams[(int)SearchParam.ToStation];
@@ -45,7 +45,7 @@ namespace backend
 
         public static string PrepareEmptySearchRepsonse()
         {
-            return " , , , , ";
+            return " ? ? ? ? ? ";
         }
     }
 }

@@ -27,11 +27,11 @@ namespace backend
 
         public override string ToString()
         {
-            return Status.ToString() + ","
-                + UserID.ToString() + ","
-                + FirstName + ","
-                + LastName + ","
-                + Email + ","
+            return Status.ToString() + "?"
+                + UserID.ToString() + "?"
+                + FirstName + "?"
+                + LastName + "?"
+                + Email + "?"
                 + Login;
 
         }

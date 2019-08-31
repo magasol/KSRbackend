@@ -10,7 +10,7 @@ namespace backend
 
         public static string PrepareLoginResponse(string loginRequest)
         {
-            string[] loginParams = loginRequest.Split(',');
+            string[] loginParams = loginRequest.Split('?');
             string login = loginParams[(int)LoginParam.Login];
             string password = loginParams[(int)LoginParam.Password];
             Console.WriteLine(" Login credentials: ({0})", login);
