@@ -15,12 +15,13 @@ namespace backend.Services
 
             SaleRepository saleRepository = new SaleRepository();
 
-            string train = buyParams[(int)BuyParam.RouteId];
-            string userId = buyParams[(int)BuyParam.UserId];
-            int from = int.Parse(buyParams[(int)BuyParam.From]);
-            int to = int.Parse(buyParams[(int)BuyParam.To]);
+            int trainId = Convert.ToInt32(buyParams[(int)BuyParam.RouteId]);
+            int userId = Convert.ToInt32(buyParams[(int)BuyParam.UserId]);
 
-            bool result = saleRepository.addSale(train, userId, from, to);
+            string from_station = buyParams[(int)BuyParam.From];
+            string to_station = buyParams[(int)BuyParam.To];
+
+            bool result = saleRepository.addSale(from_station, to_station, trainId, userId);
 
             return result.ToString();
         }

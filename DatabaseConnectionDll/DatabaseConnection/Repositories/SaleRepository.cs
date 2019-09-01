@@ -1,28 +1,18 @@
 ﻿using DatabaseConnection.entities;
-using DatabaseConnection.Repositories;
-using System.Data.Entity;
-using Npgsql;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace DatabaseConnection.Repositories
 {
     public class SaleRepository : Repository<Sale>, ISaleRepository
     {
-        private NpgsqlConnection conn = new NpgsqlConnection("User ID=postgres;Password=adminadmin;Host=localhost;Port=5432;Database=traintickets;");
-
         public bool addSale(string from_station, string to_station, int route_id, int traveller_id)
         {
-            using (var context = new GenericContext<Entity>())
+            using (var context = new GenericContext<Sale>())
             {
                 using (var transaction = context.Database.BeginTransaction())
                 {
                     try
                     {
-
                         int saleId = NextId();
                         int ticketId = 1;
                         Sale sale = new Sale();
