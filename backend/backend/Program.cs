@@ -1,4 +1,5 @@
-﻿using RabbitMQ.Client;
+﻿using backend.Services;
+using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using System;
 using System.Text;
@@ -10,6 +11,7 @@ namespace backend
         internal static RegisterService RegisterService => RegisterService;
         internal static LoginService LoginService => LoginService;
         internal static SearchService SearchService => SearchService;
+        internal static BuyService BuyService => BuyService;
 
         public delegate string prepareResponseFunction(string message);
         public delegate string prepareEmptyResponseFunction();
@@ -41,15 +43,24 @@ namespace backend
                     autoDelete: false,
                     arguments: null);
 
+                channel.QueueDeclare(
+                    queue: "buyQueue",
+                    durable: false,
+                    exclusive: false,
+                    autoDelete: false,
+                    arguments: null);
+
                 channel.BasicQos(0, 1, false);
 
                 var loginConsumer = new EventingBasicConsumer(channel);
                 var registerConsumer = new EventingBasicConsumer(channel);
                 var searchConsumer = new EventingBasicConsumer(channel);
+                var buyConsumer = new EventingBasicConsumer(channel);
 
                 channel.BasicConsume(queue: "loginQueue", autoAck: false, consumer: loginConsumer);
                 channel.BasicConsume(queue: "registerQueue", autoAck: false, consumer: registerConsumer);
                 channel.BasicConsume(queue: "searchQueue", autoAck: false, consumer: searchConsumer);
+                channel.BasicConsume(queue: "buyQueue", autoAck: false, consumer: buyConsumer);
 
                 Console.WriteLine(" [x] Awaiting RPC requests");
 
@@ -58,6 +69,8 @@ namespace backend
                 registerConsumer.Received += AddReceiver(channel, RegisterService.PrepareRegisterResponse, RegisterService.PrepareEmptyRegisterRepsonse);
                 
                 searchConsumer.Received += AddReceiver(channel, SearchService.PrepareSearchResponse, SearchService.PrepareEmptySearchRepsonse);
+
+                buyConsumer.Received += AddReceiver(channel, BuyService.PrepareBuyResponse, BuyService.PrepareEmptyBuyRepsonse);
                 
                 Console.WriteLine(" Press [enter] to exit.");
                 Console.ReadLine();

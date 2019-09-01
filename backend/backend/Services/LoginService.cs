@@ -17,7 +17,7 @@ namespace backend
 
             TravellerRepository travellerRepository = new TravellerRepository();
             Traveller traveller = travellerRepository.FindUserByLogin(login);
-            if (traveller is null)
+            if (traveller == null)
                 return new UserDataResponse(false).ToString();
             UserDataResponse loginResponse = traveller.password == password
                 ? new UserDataResponse(true,

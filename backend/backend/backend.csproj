@@ -35,7 +35,7 @@
   <ItemGroup>
     <Reference Include="DatabaseConnection, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\DatabaseConnectionDll\DatabaseConnection\bin\Debug\DatabaseConnection.dll</HintPath>
+      <HintPath>..\..\DatabaseConnectionDll\DatabaseConnection\obj\Debug\DatabaseConnection.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.Diagnostics.Tracing.EventSource, Version=1.1.28.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.Diagnostics.Tracing.EventSource.Redist.1.1.28\lib\net46\Microsoft.Diagnostics.Tracing.EventSource.dll</HintPath>
@@ -136,6 +136,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Services\BuyService.cs" />
     <Compile Include="Services\LoginService.cs" />
     <Compile Include="Services\RegisterService.cs" />
     <Compile Include="Responses\SearchResponse.cs" />

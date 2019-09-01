@@ -15,7 +15,7 @@ namespace backend
 
             TravellerRepository travellerRepository = new TravellerRepository();
             Traveller traveller = travellerRepository.FindUserByLogin(registerParams[(int)RegisterParam.Login]);
-            if (traveller is null)
+            if (traveller == null)
             {
                 traveller = new Traveller
                 {
