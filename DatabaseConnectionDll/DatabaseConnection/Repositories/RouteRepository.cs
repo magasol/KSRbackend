@@ -13,6 +13,7 @@ namespace DatabaseConnection.Repositories
 
         public List<TrainConnection> SearchForTrainConnection(DateTime date, string from_station, string to_station)
         {
+            List<TrainConnection> results = new List<TrainConnection>();
             using (var command = new NpgsqlCommand(
                 "SELECT s1.travel_id , s1.train_name, s1.departure_date, s1.departure_hour," +
                     " sum(s1.price) AS total_price, sum(s1.duration) AS total_duration " +
@@ -46,7 +47,6 @@ namespace DatabaseConnection.Repositories
                 "ORDER BY " +
                     "s1.departure_hour;", conn))
             {
-
                 try
                 {
                     conn.Open();
@@ -69,7 +69,6 @@ namespace DatabaseConnection.Repositories
 
                     if (reader.HasRows)
                     {
-                        List<TrainConnection> results = new List<TrainConnection>();
                         while (reader.Read())
                         {
                             results.Add(new TrainConnection(
@@ -80,16 +79,75 @@ namespace DatabaseConnection.Repositories
                             reader.GetDecimal(4),
                             reader.GetTimeSpan(5)));
                         }
-
-                        return results;
                     }
                 }
                 catch
                 {
                     return null;
                 }
+                conn.Close();
             }
-            return null;
+            for (int i = 0; i < results.Count; i++)
+            {
+                using (var cmd = new NpgsqlCommand(
+                    "SELECT " +
+                        "sum(subroute.travel_duration) " +
+                    "FROM " +
+                        "route " +
+                        "INNER JOIN route_subroute " +
+                        "ON route.id = route_subroute.route_id " +
+                        "INNER JOIN subroute " +
+                        "ON subroute.id = route_subroute.subroute_id " +
+                        "WHERE " +
+                        "route.id = :route_id AND route_subroute.route_order_number < ( " +
+                        "SELECT " +
+                            "route_subroute.route_order_number " +
+                        "FROM " +
+                            "route " +
+                            "INNER JOIN route_subroute " +
+                            "ON route.id = route_subroute.route_id " +
+                            "INNER JOIN subroute " +
+                            "ON subroute.id = route_subroute.subroute_id " +
+                        "WHERE " +
+                            "route.id = :route_id AND subroute.from_station = :from_station " +
+                         ") " +
+                    "GROUP BY route.id " +
+                    "ORDER BY route.departure_hour;", conn))
+                {
+                    try
+                    {
+                        conn.Open();
+
+                        var from_station_db2 = new NpgsqlParameter(":from_station", DbType.String);
+                        from_station_db2.Value = from_station;
+                        cmd.Parameters.Add(from_station_db2);
+
+                        var route_id_db = new NpgsqlParameter(":route_id", DbType.Int32);
+                        route_id_db.Value = results[i].travel_id;
+                        cmd.Parameters.Add(route_id_db);
+
+                        cmd.Prepare();
+
+                        var reader2 = cmd.ExecuteReader();
+
+                        if (reader2.HasRows)
+                        {
+                            while (reader2.Read())
+                            {
+                                var timeToAdd =
+                                results[i].departure_hour += reader2.GetTimeSpan(0);
+                            }
+                        }
+                        conn.Close();
+
+                    }
+                    catch
+                    {
+                        return null;
+                    }
+                }
+            }
+            return results;
         }
     }
 }

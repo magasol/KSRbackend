@@ -25,6 +25,7 @@ namespace backend
 
             RouteRepository routeRepository = new RouteRepository();
             List<TrainConnection> result = routeRepository.SearchForTrainConnection(Convert.ToDateTime(departureDate), fromStation, toStation);
+            result.Sort(new TrainConnectionComparator());
 
             string resultString = "";
             foreach (TrainConnection r in result)
@@ -48,4 +49,14 @@ namespace backend
             return " ? ? ? ? ? ";
         }
     }
+
+    class TrainConnectionComparator : IComparer<TrainConnection>
+    {
+        public int Compare(TrainConnection x, TrainConnection y)
+        {
+            if (x == null || y == null) return 0;
+            return (x.departure_hour).CompareTo(y.departure_hour);
+        }
+    }
+
 }
