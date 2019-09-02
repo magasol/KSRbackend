@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 namespace DatabaseConnection.Repositories
 {
     public class SaleTicketRepository : Repository<SaleTicket>, ISaleTicketRepository {
-        public SaleTicket getSaleTicket(int sale_id)
+        public SaleTicket GetSaleTicket(int sale_id)
         {
             using (var context = new GenericContext<SaleTicket>())
             {

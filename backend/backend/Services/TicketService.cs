@@ -17,17 +17,19 @@ namespace backend.Services
                 $"userId: {userId}\n");
 
             SaleRepository saleRepository = new SaleRepository();
-            RouteRepository routeRepository = new RouteRepository();
             List<Sale> saleResults = saleRepository.GetUserTickets(Convert.ToInt32(userId));
 
+            RouteRepository routeRepository = new RouteRepository();
+
             string resultString = "";
-            int i = 0;
+
             foreach (Sale sale in saleResults)
             {
-                Route route = routeRepository.GetRoute(sale.route_id);
+                Route route = routeRepository.Get(sale.route_id);
                 List<TrainConnection> result = routeRepository.SearchForTrainConnection(route.departure_date, sale.from_station, sale.to_station);
                 decimal price = 0;
-                TimeSpan time = TimeSpan.Zero, hour = TimeSpan.Zero;
+                TimeSpan time = new TimeSpan();
+                TimeSpan hour = new TimeSpan();
 
                 foreach (TrainConnection r in result)
                 {
@@ -51,8 +53,8 @@ namespace backend.Services
                         time.ToString(),
                         sale.payment_status.ToString());
                 resultString += ticketResponse.ToString() + ';';
-                i++;
             }
+
             resultString = resultString.Remove(resultString.Length - 1, 1);
             return resultString;
         }

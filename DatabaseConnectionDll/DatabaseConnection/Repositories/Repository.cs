@@ -16,7 +16,7 @@ namespace DatabaseConnection.Repositories
             }
         }
 
-        public T Get(long id)
+        public T Get(int id)
         {
             using (var context = new GenericContext<T>())
             {
