@@ -21,7 +21,7 @@ namespace backend.Services
             string from_station = buyParams[(int)BuyParam.From];
             string to_station = buyParams[(int)BuyParam.To];
 
-            bool result = saleRepository.addSale(from_station, to_station, trainId, userId);
+            bool result = saleRepository.AddSale(from_station, to_station, trainId, userId);
 
             return result.ToString();
         }

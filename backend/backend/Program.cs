@@ -22,33 +22,15 @@ namespace backend
             using (var connection = factory.CreateConnection())
             using (var channel = connection.CreateModel())
             {
-                channel.QueueDeclare(
-                    queue: "loginQueue",
-                    durable: false,
-                    exclusive: false,
-                    autoDelete: false,
-                    arguments: null);
+                channel.QueueDeclare(queue: "loginQueue", durable: false, exclusive: false, autoDelete: false, arguments: null);
 
-                channel.QueueDeclare(
-                    queue: "registerQueue",
-                    durable: false,
-                    exclusive: false,
-                    autoDelete: false,
-                    arguments: null);
+                channel.QueueDeclare( queue: "registerQueue", durable: false, exclusive: false, autoDelete: false, arguments: null);
 
-                channel.QueueDeclare(
-                    queue: "searchQueue",
-                    durable: false,
-                    exclusive: false,
-                    autoDelete: false,
-                    arguments: null);
+                channel.QueueDeclare( queue: "searchQueue", durable: false, exclusive: false, autoDelete: false, arguments: null);
 
-                channel.QueueDeclare(
-                    queue: "buyQueue",
-                    durable: false,
-                    exclusive: false,
-                    autoDelete: false,
-                    arguments: null);
+                channel.QueueDeclare( queue: "buyQueue", durable: false, exclusive: false, autoDelete: false, arguments: null);
+
+                channel.QueueDeclare(queue: "ticketsQueue", durable: false, exclusive: false, autoDelete: false, arguments: null);
 
                 channel.BasicQos(0, 1, false);
 
@@ -56,11 +38,13 @@ namespace backend
                 var registerConsumer = new EventingBasicConsumer(channel);
                 var searchConsumer = new EventingBasicConsumer(channel);
                 var buyConsumer = new EventingBasicConsumer(channel);
+                var ticketsConsumer = new EventingBasicConsumer(channel);
 
                 channel.BasicConsume(queue: "loginQueue", autoAck: false, consumer: loginConsumer);
                 channel.BasicConsume(queue: "registerQueue", autoAck: false, consumer: registerConsumer);
                 channel.BasicConsume(queue: "searchQueue", autoAck: false, consumer: searchConsumer);
                 channel.BasicConsume(queue: "buyQueue", autoAck: false, consumer: buyConsumer);
+                channel.BasicConsume(queue: "ticketsQueue", autoAck: false, consumer: ticketsConsumer);
 
                 Console.WriteLine(" [x] Awaiting RPC requests");
 
@@ -71,7 +55,9 @@ namespace backend
                 searchConsumer.Received += AddReceiver(channel, SearchService.PrepareSearchResponse, SearchService.PrepareEmptySearchRepsonse);
 
                 buyConsumer.Received += AddReceiver(channel, BuyService.PrepareBuyResponse, BuyService.PrepareEmptyBuyRepsonse);
-                
+
+                ticketsConsumer.Received += AddReceiver(channel, TicketService.PrepareTicketResponse, TicketService.PrepareEmptyTicketRepsonse);
+
                 Console.WriteLine(" Press [enter] to exit.");
                 Console.ReadLine();
             }

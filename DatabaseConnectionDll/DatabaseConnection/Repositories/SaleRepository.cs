@@ -1,11 +1,13 @@
 ﻿using DatabaseConnection.entities;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace DatabaseConnection.Repositories
 {
     public class SaleRepository : Repository<Sale>, ISaleRepository
     {
-        public bool addSale(string from_station, string to_station, int route_id, int traveller_id)
+        public bool AddSale(string from_station, string to_station, int route_id, int traveller_id)
         {
             using (var context = new GenericContext<Sale>())
             {
@@ -41,6 +43,19 @@ namespace DatabaseConnection.Repositories
                         return false;
                     }
                 }
+            }
+        }
+
+        public List<Sale> GetUserTickets(int user_id)
+        {
+            using (var context = new GenericContext<Sale>())
+            {
+                var item = context.Entity.Where<Sale>(s => s.traveller_id == user_id).OrderBy(s => s.sale_date).ToList();
+                if (item == null)
+                {
+                    return null;
+                }
+                return item;
             }
         }
     }
