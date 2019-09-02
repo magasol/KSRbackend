@@ -8,5 +8,18 @@ using System.Threading.Tasks;
 
 namespace DatabaseConnection.Repositories
 {
-    internal class SaleTicketRepository : Repository<SaleTicket>, ISaleTicketRepository { }
+    public class SaleTicketRepository : Repository<SaleTicket>, ISaleTicketRepository {
+        public SaleTicket getSaleTicket(int sale_id)
+        {
+            using (var context = new GenericContext<SaleTicket>())
+            {
+                var item = context.Entity.Where<SaleTicket>(t => t.sale_id == sale_id).SingleOrDefault();
+                if (item == null)
+                {
+                    return null;
+                }
+                return item;
+            }
+        }
+    }
 }

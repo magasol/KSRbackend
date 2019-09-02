@@ -149,5 +149,19 @@ namespace DatabaseConnection.Repositories
             }
             return results;
         }
+
+        public Route GetRoute(int id)
+        {
+            using (var context = new GenericContext<Route>())
+            {
+                var item = context.Entity.Find(id);
+                if (item == null)
+                {
+                    return null;
+                }
+                return item;
+            }
+        }
+
     }
 }
