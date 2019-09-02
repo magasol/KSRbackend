@@ -1,71 +1,129 @@
 ﻿using DatabaseConnection.entities;
+using Npgsql;
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 
 namespace DatabaseConnection.Repositories
 {
     public class SaleRepository : Repository<Sale>, ISaleRepository
     {
+        private NpgsqlConnection conn = new NpgsqlConnection("User ID=postgres;Password=adminadmin;Host=localhost;Port=5432;Database=traintickets;");
+
         public bool AddSale(string from_station, string to_station, int route_id, int traveller_id)
         {
-            using (var context = new GenericContext<Sale>())
+            conn.Open();
+
+            NpgsqlTransaction transaction = conn.BeginTransaction();
+            try
             {
-                using (var transaction = context.Database.BeginTransaction())
+                RouteSubrouteRepository routeSubrouteRepository = new RouteSubrouteRepository();
+                List<RouteSubroute> routeParts = routeSubrouteRepository.GetRoutePart(route_id, from_station, to_station);
+
+                foreach (var routePart in routeParts)
+                    if (routePart.seats_amount <= 0)
+                        throw new Exception();
+
+                int saleId = NextId();
+                int ticketId = 1;
+
+                Sale sale = new Sale();
+                sale.id = saleId;
+                sale.payment_status = true;
+                sale.sale_date = DateTime.Now;
+                sale.to_station = to_station;
+                sale.from_station = from_station;
+                sale.route_id = route_id;
+                sale.traveller_id = traveller_id;
+
+                NpgsqlCommand addSale = new NpgsqlCommand(" insert into sale " +
+                    "(id, payment_status, from_station, to_station, route_id, traveller_id) " +
+                    "values(:id,:payment_status, :from_station, :to_station, :route_id, :traveller_id); ", conn);
+
+                var id_db_sale = new NpgsqlParameter(":id", DbType.Int32);
+                id_db_sale.Value = sale.id;
+                addSale.Parameters.Add(id_db_sale);
+
+                var payment_status_db = new NpgsqlParameter(":payment_status", DbType.Boolean);
+                payment_status_db.Value = sale.payment_status;
+                addSale.Parameters.Add(payment_status_db);
+
+                var to_station_db = new NpgsqlParameter(":to_station", DbType.String);
+                to_station_db.Value = sale.to_station;
+                addSale.Parameters.Add(to_station_db);
+
+                var from_station_db = new NpgsqlParameter(":from_station", DbType.String);
+                from_station_db.Value = sale.from_station;
+                addSale.Parameters.Add(from_station_db);
+
+                var route_id_db = new NpgsqlParameter(":route_id", DbType.Int32);
+                route_id_db.Value = sale.route_id;
+                addSale.Parameters.Add(route_id_db);
+
+                var traveller_id_db = new NpgsqlParameter(":traveller_id", DbType.Int32);
+                traveller_id_db.Value = sale.traveller_id;
+                addSale.Parameters.Add(traveller_id_db);
+
+                addSale.Prepare();
+
+                //throw new Exception(); <-- TEST
+
+                SaleTicket saleTicket = new SaleTicket
                 {
-                    try
-                    {
-                        RouteSubrouteRepository routeSubrouteRepository = new RouteSubrouteRepository();
-                        List<RouteSubroute> routeParts = routeSubrouteRepository.GetRoutePart(route_id, from_station, to_station);
+                    sale_id = saleId,
+                    ticket_id = ticketId,
+                    amount = 1
+                };
 
-                        foreach (var routePart in routeParts)
-                            if (routePart.seats_amount <= 0)
-                                throw new Exception();
+                NpgsqlCommand addSaleTicket = new NpgsqlCommand("insert into sale_ticket (amount,sale_id,ticket_id) " +
+                    " values(:amount, :sale_id, :ticket_id); ", conn);
+                var amount_db = new NpgsqlParameter(":amount", DbType.Int32);
+                amount_db.Value = saleTicket.amount;
+                addSaleTicket.Parameters.Add(amount_db);
 
-                        int saleId = NextId();
-                        int ticketId = 1;
-                        Sale sale = new Sale();
-                        sale.payment_status = true;
-                        sale.sale_date = DateTime.Now;
-                        sale.to_station = to_station;
-                        sale.from_station = from_station;
-                        sale.route_id = route_id;
-                        sale.traveller_id = traveller_id;
+                var sale_id_db = new NpgsqlParameter(":sale_id", DbType.Int32);
+                sale_id_db.Value = saleTicket.sale_id;
+                addSaleTicket.Parameters.Add(sale_id_db);
 
-                        Add(sale);
+                var ticket_id_db = new NpgsqlParameter(":ticket_id", DbType.Int32);
+                ticket_id_db.Value = saleTicket.ticket_id;
+                addSaleTicket.Parameters.Add(ticket_id_db);
 
-                        //throw new Exception(); <-- TEST
+                addSaleTicket.Prepare();
 
-                        SaleTicketRepository saleTicketRepository = new SaleTicketRepository();
-                        SaleTicket saleTicket = new SaleTicket
-                        {
-                            sale_id = saleId,
-                            ticket_id = ticketId,
-                            amount = 1
-                        };
-                        saleTicketRepository.Add(saleTicket);
+                int rowsAddedToSale = addSale.ExecuteNonQuery();
+                int rowsAddedToTicketSale = addSaleTicket.ExecuteNonQuery();
 
-                        for (int i = 0; i < routeParts.Count; i++)
-                        {
-                            routeParts[i].seats_amount -= 1;
-                            var isSuccessful = routeSubrouteRepository.Update(routeParts[i]);
-                            if (!isSuccessful)
-                                throw new Exception();
-                        }
 
-                        transaction.Commit();
+                for (int i = 0; i < routeParts.Count; i++)
+                {
+                    routeParts[i].seats_amount -= 1;
+                    NpgsqlCommand updateRouteSubroute = new NpgsqlCommand("update route_subroute set seats_amount = :seats_amount " +
+                    "where id = :id;", conn);
 
-                        return true;
-                    }
-                    catch (Exception ex)
-                    {
-                        transaction.Rollback();
-                        Console.WriteLine("Error occurred.");
+                    var seats_amount_db = new NpgsqlParameter(":seats_amount", DbType.Int32);
+                    seats_amount_db.Value = routeParts[i].seats_amount;
+                    updateRouteSubroute.Parameters.Add(seats_amount_db);
 
-                        return false;
-                    }
+                    var id_db = new NpgsqlParameter(":id", DbType.Int32);
+                    id_db.Value = routeParts[i].id;
+                    updateRouteSubroute.Parameters.Add(id_db);
+
+                    updateRouteSubroute.Prepare();
+
+                    int rowsUpdated = updateRouteSubroute.ExecuteNonQuery();
                 }
             }
+            catch (Exception ex)
+            {
+                transaction.Rollback();
+                conn.Close();
+                return false;
+            }
+            transaction.Commit();
+            conn.Close();
+            return true;
         }
 
         public List<Sale> GetUserTickets(int user_id)
