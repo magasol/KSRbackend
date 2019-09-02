@@ -12,6 +12,7 @@ namespace backend
         internal static LoginService LoginService => LoginService;
         internal static SearchService SearchService => SearchService;
         internal static BuyService BuyService => BuyService;
+        internal static TicketService TicketService => TicketService;
 
         public delegate string prepareResponseFunction(string message);
         public delegate string prepareEmptyResponseFunction();

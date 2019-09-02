@@ -238,7 +238,9 @@
     <Compile Include="entities\Ticket.cs" />
     <Compile Include="entities\Traveller.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Repositories\IRouteSubrouteRepository.cs" />
     <Compile Include="Repositories\ISaleTicketRepository.cs" />
+    <Compile Include="Repositories\RouteSubrouteRepository.cs" />
     <Compile Include="Repositories\SaleRepository.cs" />
     <Compile Include="Repositories\IRepository.cs" />
     <Compile Include="Repositories\IRouteRepository.cs" />
@@ -247,7 +249,7 @@
     <Compile Include="Repositories\Repository.cs" />
     <Compile Include="Repositories\RouteRepository.cs" />
     <Compile Include="Repositories\SaleTicketRepository.cs" />
-    <Compile Include="Repositories\SearchResult.cs" />
+    <Compile Include="entities\SearchResult.cs" />
     <Compile Include="Repositories\TravellerRepository.cs" />
   </ItemGroup>
   <ItemGroup>

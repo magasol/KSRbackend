@@ -7,5 +7,8 @@ using System.Threading.Tasks;
 
 namespace DatabaseConnection.Repositories
 {
-    interface ISaleTicketRepository : IRepository<SaleTicket> { }
+    interface IRouteSubrouteRepository: IRepository<RouteSubroute>
+    {
+        List<RouteSubroute> GetRoutePart(int route_id, string from_station, string to_station);
+    }
 }

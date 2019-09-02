@@ -10,5 +10,6 @@ namespace DatabaseConnection.Repositories
         void AddRange(List<T> entities);
         void Delete(T entity);
         void DeleteRange(List<T> entities);
+        bool Update(T changedEntity);
     }
 }

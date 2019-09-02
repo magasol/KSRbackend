@@ -72,6 +72,21 @@ namespace DatabaseConnection.Repositories
                 return context.Entity.Max(x => x.id) + 1;
             }
         }
+
+        public bool Update(T changedEntity)
+        {
+            using (var context = new GenericContext<T>())
+            {
+                var entity = context.Entity.Find(changedEntity.id);
+                if (entity == null)
+                {
+                    return false;
+                }
+                context.Entry(entity).CurrentValues.SetValues(changedEntity);
+                context.SaveChanges();
+                return true;
+            }
+        }
     }
 }
 

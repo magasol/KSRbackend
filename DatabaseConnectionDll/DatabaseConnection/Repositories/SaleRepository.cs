@@ -15,6 +15,13 @@ namespace DatabaseConnection.Repositories
                 {
                     try
                     {
+                        RouteSubrouteRepository routeSubrouteRepository = new RouteSubrouteRepository();
+                        List<RouteSubroute> routeParts = routeSubrouteRepository.GetRoutePart(route_id, from_station, to_station);
+
+                        foreach (var routePart in routeParts)
+                            if (routePart.seats_amount <= 0)
+                                throw new Exception();
+
                         int saleId = NextId();
                         int ticketId = 1;
                         Sale sale = new Sale();
@@ -28,8 +35,23 @@ namespace DatabaseConnection.Repositories
                         Add(sale);
 
                         //throw new Exception(); <-- TEST
+
                         SaleTicketRepository saleTicketRepository = new SaleTicketRepository();
-                        saleTicketRepository.addSaleTicket(saleId, ticketId);
+                        SaleTicket saleTicket = new SaleTicket
+                        {
+                            sale_id = saleId,
+                            ticket_id = ticketId,
+                            amount = 1
+                        };
+                        saleTicketRepository.Add(saleTicket);
+
+                        for (int i = 0; i < routeParts.Count; i++)
+                        {
+                            routeParts[i].seats_amount -= 1;
+                            var isSuccessful = routeSubrouteRepository.Update(routeParts[i]);
+                            if (!isSuccessful)
+                                throw new Exception();
+                        }
 
                         transaction.Commit();
 
