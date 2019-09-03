@@ -11,6 +11,8 @@ namespace DatabaseConnection.Repositories
     {
         bool AddSale(string from_station, string to_station, int route_id, int traveller_id, short amount, string ticket_name);
 
-        List<Sale> GetUserTickets(int user_id);
+        List<Sale> GetUserSales(int user_id);
+
+        string GetSaleTicketNameAmountPercentage(int sale_id);
     }
 }

@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
+﻿
 namespace backend.Responses
 {
     class TicketResponse
@@ -17,7 +12,9 @@ namespace backend.Responses
                string DepartureHour = "",
                string Price = "",
                string Time = "",
-               string PaymentStatus = "")
+               string PaymentStatus = "",
+               string TicketsAmount = "",
+               string TicketName = "")
         {
             this.TrainName = TrainName;
             this.FromStation = FromStation;
@@ -28,6 +25,8 @@ namespace backend.Responses
             this.Price = Price;
             this.Time = Time;
             this.PaymentStatus = PaymentStatus;
+            this.TicketsAmount = TicketsAmount;
+            this.TicketName = TicketName;
         }
 
         public string TrainName { get; set; }
@@ -39,6 +38,8 @@ namespace backend.Responses
         public string Price { get; set; }
         public string Time { get; set; }
         public string PaymentStatus { get; set; }
+        public string TicketsAmount { get; set; }
+        public string TicketName { get; set; }
 
         public override string ToString()
         {
@@ -50,8 +51,9 @@ namespace backend.Responses
                 + DepartureHour + "?"
                 + Price + "?"
                 + Time + "?"
-                + PaymentStatus;
+                + PaymentStatus + "?"
+                + TicketsAmount + "?"
+                + TicketName;
         }
     }
 }
-

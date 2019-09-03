@@ -77,7 +77,7 @@ namespace DatabaseConnection.Repositories
 
                 selectTicket.Prepare();
 
-                int ticketId = (int) selectTicket.ExecuteScalar();
+                int ticketId = (int)selectTicket.ExecuteScalar();
 
                 SaleTicket saleTicket = new SaleTicket
                 {
@@ -136,7 +136,7 @@ namespace DatabaseConnection.Repositories
             return true;
         }
 
-        public List<Sale> GetUserTickets(int user_id)
+        public List<Sale> GetUserSales(int user_id)
         {
             using (var context = new GenericContext<Sale>())
             {
@@ -147,6 +147,41 @@ namespace DatabaseConnection.Repositories
                 }
                 return item;
             }
+        }
+
+        public string GetSaleTicketNameAmountPercentage(int sale_id)
+        {
+            conn.Open();
+
+            NpgsqlCommand selectTicketNameAndAmount = new NpgsqlCommand(
+                "select " +
+                    "ticket.name as ticket_name, sale_ticket.amount as tickets_amount, ticket.price_percentage " +
+                "from " +
+                    "ticket " +
+                    "inner join sale_ticket " +
+                    "on ticket.id = sale_ticket.ticket_id " +
+                    "inner join sale " +
+                    "on sale.id = sale_ticket.sale_id " +
+                "where " +
+                    "sale.id = :sale_id;", conn);
+
+            var sale_id_db = new NpgsqlParameter(":sale_id", DbType.Int32);
+            sale_id_db.Value = sale_id;
+            selectTicketNameAndAmount.Parameters.Add(sale_id_db);
+
+            selectTicketNameAndAmount.Prepare();
+
+            var reader = selectTicketNameAndAmount.ExecuteReader();
+
+            string result = " , , ";
+            if (reader.HasRows)
+            {
+                reader.Read();
+                result = reader.GetString(0) + "," + reader.GetInt16(1).ToString() + "," + reader.GetDecimal(2).ToString();
+            }
+
+            conn.Close();
+            return result;
         }
     }
 }

@@ -17,7 +17,7 @@ namespace backend.Services
                 $"userId: {userId}\n");
 
             SaleRepository saleRepository = new SaleRepository();
-            List<Sale> saleResults = saleRepository.GetUserTickets(Convert.ToInt32(userId));
+            List<Sale> saleResults = saleRepository.GetUserSales(Convert.ToInt32(userId));
 
             RouteRepository routeRepository = new RouteRepository();
 
@@ -41,6 +41,14 @@ namespace backend.Services
                     }
                 }
 
+                string saleTicketNameAmountPercentage = saleRepository.GetSaleTicketNameAmountPercentage(sale.id);
+                string[] saleTicketNameAmountPercentagArray = saleTicketNameAmountPercentage.Split(',');
+                var ticketName = saleTicketNameAmountPercentagArray[0];
+                var ticketsAmount = saleTicketNameAmountPercentagArray[1];
+                var ticketPercentage = saleTicketNameAmountPercentagArray[2];
+
+                var totalPrice = price * ( Convert.ToInt32(ticketsAmount)) * (Convert.ToDecimal(ticketPercentage) / 100);
+                //(Convert.ToInt32(ticketPercentage) / 100.0) *
                 TicketResponse ticketResponse
                     = new TicketResponse(
                         route.train_name.ToString(),
@@ -49,9 +57,11 @@ namespace backend.Services
                         sale.sale_date.ToString(),
                         route.departure_date.ToString(),
                         hour.ToString(),
-                        price.ToString(),
+                        totalPrice.ToString(),
                         time.ToString(),
-                        sale.payment_status.ToString());
+                        sale.payment_status.ToString(),
+                        ticketName,
+                        ticketsAmount);
                 resultString += ticketResponse.ToString() + ';';
             }
 
@@ -61,7 +71,7 @@ namespace backend.Services
 
         public static string PrepareEmptyTicketRepsonse()
         {
-            return " ? ? ? ? ? ? ? ? ";
+            return " ? ? ? ? ? ? ? ? ? ? ";
         }
     }
 }
