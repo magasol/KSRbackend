@@ -1,6 +1,7 @@
 ﻿using DatabaseConnection.entities;
 using DatabaseConnection.Repositories;
 using System;
+using System.Threading;
 
 namespace backend
 {
@@ -14,7 +15,14 @@ namespace backend
             string login = loginParams[(int)LoginParam.Login];
             string password = loginParams[(int)LoginParam.Password];
             Console.WriteLine(" Login credentials: ({0})", login);
-
+            //TESTOWANIE WATKOW
+            // 0) ODKOMENTUJ SLEEPA
+            // 1) OTWORZ STRONE LOGOWANIA I WYSZUKIWANIA
+            // 2) PRZYGOTUJ DANE LOGOWANIA I DANE WYSZUKIANIA 
+            // 3) KLIKNIJ ZALOGUJ, !!POTEM!! KLIKNIJ WYSZUKAJ
+            // WYNIK: WYSZUKIWANIE POWINNO ZOSTAĆ ZWROCONE PRZED ZALOGOWANIEM
+            //Thread.Sleep(15000);
+            //Console.WriteLine("Login threads wakes up");
             TravellerRepository travellerRepository = new TravellerRepository();
             Traveller traveller = travellerRepository.FindUserByLogin(login);
             if (traveller == null)

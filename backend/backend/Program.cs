@@ -2,8 +2,11 @@
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace backend
 {
@@ -22,43 +25,90 @@ namespace backend
         {
             var factory = new ConnectionFactory() { HostName = "localhost" };
             using (var connection = factory.CreateConnection())
-            using (var channel = connection.CreateModel())
             {
-                channel.QueueDeclare(queue: "loginQueue", durable: false, exclusive: false, autoDelete: false, arguments: null);
+                var loginThread = Task.Factory.StartNew(() =>
+                {
+                    using (var channel = connection.CreateModel())
+                    {
+                        channel.QueueDeclare(queue: "loginQueue", durable: false, exclusive: false, autoDelete: false, arguments: null);
+                        var loginConsumer = new EventingBasicConsumer(channel);
+                        channel.BasicConsume(queue: "loginQueue", autoAck: false, consumer: loginConsumer);
+                        channel.BasicQos(0, 1, false);
 
-                channel.QueueDeclare( queue: "registerQueue", durable: false, exclusive: false, autoDelete: false, arguments: null);
+                        loginConsumer.Received += AddReceiver(channel, LoginService.PrepareLoginResponse, LoginService.PrepareEmptyLoginRepsonse);
+                        Console.WriteLine(" loginThread Awaiting RPC requests");
 
-                channel.QueueDeclare( queue: "searchQueue", durable: false, exclusive: false, autoDelete: false, arguments: null);
+                        Console.ReadLine();
+                    }
+                });
 
-                channel.QueueDeclare( queue: "buyQueue", durable: false, exclusive: false, autoDelete: false, arguments: null);
+                var registerThread = Task.Factory.StartNew(() =>
+                {
+                    using (var channel = connection.CreateModel())
+                    {
+                        channel.QueueDeclare(queue: "registerQueue", durable: false, exclusive: false, autoDelete: false, arguments: null);
+                        var registerConsumer = new EventingBasicConsumer(channel);
+                        channel.BasicConsume(queue: "registerQueue", autoAck: false, consumer: registerConsumer);
+                        channel.BasicQos(0, 1, false);
 
-                channel.QueueDeclare(queue: "ticketsQueue", durable: false, exclusive: false, autoDelete: false, arguments: null);
+                        registerConsumer.Received += AddReceiver(channel, RegisterService.PrepareRegisterResponse, RegisterService.PrepareEmptyRegisterRepsonse);
+                        Console.WriteLine(" registerThread Awaiting RPC requests");
 
-                channel.BasicQos(0, 1, false);
+                        Console.ReadLine();
+                    }
+                });
 
-                var loginConsumer = new EventingBasicConsumer(channel);
-                var registerConsumer = new EventingBasicConsumer(channel);
-                var searchConsumer = new EventingBasicConsumer(channel);
-                var buyConsumer = new EventingBasicConsumer(channel);
-                var ticketsConsumer = new EventingBasicConsumer(channel);
+                var searchThread = Task.Factory.StartNew(() =>
+                {
+                    using (var channel = connection.CreateModel())
+                    {
+                        channel.QueueDeclare(queue: "searchQueue", durable: false, exclusive: false, autoDelete: false, arguments: null);
+                        var searchConsumer = new EventingBasicConsumer(channel);
+                        channel.BasicConsume(queue: "searchQueue", autoAck: false, consumer: searchConsumer);
+                        channel.BasicQos(0, 1, false);
 
-                channel.BasicConsume(queue: "loginQueue", autoAck: false, consumer: loginConsumer);
-                channel.BasicConsume(queue: "registerQueue", autoAck: false, consumer: registerConsumer);
-                channel.BasicConsume(queue: "searchQueue", autoAck: false, consumer: searchConsumer);
-                channel.BasicConsume(queue: "buyQueue", autoAck: false, consumer: buyConsumer);
-                channel.BasicConsume(queue: "ticketsQueue", autoAck: false, consumer: ticketsConsumer);
+                        searchConsumer.Received += AddReceiver(channel, SearchService.PrepareSearchResponse, SearchService.PrepareEmptySearchRepsonse);
+                        Console.WriteLine(" searchThread Awaiting RPC requests");
 
-                Console.WriteLine(" [x] Awaiting RPC requests");
+                        Console.ReadLine();
+                    }
+                });
 
-                loginConsumer.Received += AddReceiver(channel, LoginService.PrepareLoginResponse, LoginService.PrepareEmptyLoginRepsonse);
+                var buyThread = Task.Factory.StartNew(() =>
+                {
+                    using (var channel = connection.CreateModel())
+                    {
+                        channel.QueueDeclare(queue: "buyQueue", durable: false, exclusive: false, autoDelete: false, arguments: null);
+                        var buyConsumer = new EventingBasicConsumer(channel);
+                        channel.BasicConsume(queue: "buyQueue", autoAck: false, consumer: buyConsumer);
+                        channel.BasicQos(0, 1, false);
 
-                registerConsumer.Received += AddReceiver(channel, RegisterService.PrepareRegisterResponse, RegisterService.PrepareEmptyRegisterRepsonse);
-                
-                searchConsumer.Received += AddReceiver(channel, SearchService.PrepareSearchResponse, SearchService.PrepareEmptySearchRepsonse);
+                        buyConsumer.Received += AddReceiver(channel, BuyService.PrepareBuyResponse, BuyService.PrepareEmptyBuyRepsonse);
+                        Console.WriteLine(" buyThread Awaiting RPC requests");
 
-                buyConsumer.Received += AddReceiver(channel, BuyService.PrepareBuyResponse, BuyService.PrepareEmptyBuyRepsonse);
+                        Console.ReadLine();
+                    }
+                });
 
-                ticketsConsumer.Received += AddReceiver(channel, TicketService.PrepareTicketResponse, TicketService.PrepareEmptyTicketRepsonse);
+                var ticketsThread = Task.Factory.StartNew(() =>
+                {
+                    using (var channel = connection.CreateModel())
+                    {
+                        channel.QueueDeclare(queue: "ticketsQueue", durable: false, exclusive: false, autoDelete: false, arguments: null);
+                        var ticketsConsumer = new EventingBasicConsumer(channel);
+                        channel.BasicConsume(queue: "ticketsQueue", autoAck: false, consumer: ticketsConsumer);
+                        channel.BasicQos(0, 1, false);
+
+                        ticketsConsumer.Received += AddReceiver(channel, TicketService.PrepareTicketResponse, TicketService.PrepareEmptyTicketRepsonse);
+                        Console.WriteLine(" ticketsThread Awaiting RPC requests");
+
+                        Console.ReadLine();
+                    }
+                });
+
+                Task.WaitAll(loginThread, registerThread, searchThread, buyThread, ticketsThread);
+
+                var work = new ConcurrentQueue<EventingBasicConsumer>();
 
                 Console.WriteLine(" Press [enter] to exit.");
                 Console.ReadLine();
