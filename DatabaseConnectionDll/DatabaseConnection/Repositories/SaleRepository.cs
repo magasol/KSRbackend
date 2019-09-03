@@ -11,7 +11,7 @@ namespace DatabaseConnection.Repositories
     {
         private NpgsqlConnection conn = new NpgsqlConnection("User ID=postgres;Password=adminadmin;Host=localhost;Port=5432;Database=traintickets;");
 
-        public bool AddSale(string from_station, string to_station, int route_id, int traveller_id)
+        public bool AddSale(string from_station, string to_station, int route_id, int traveller_id, short amount, string ticket_name)
         {
             conn.Open();
 
@@ -26,7 +26,6 @@ namespace DatabaseConnection.Repositories
                         throw new Exception();
 
                 int saleId = NextId();
-                int ticketId = 1;
 
                 Sale sale = new Sale();
                 sale.id = saleId;
@@ -69,11 +68,22 @@ namespace DatabaseConnection.Repositories
 
                 //throw new Exception(); <-- TEST
 
+                NpgsqlCommand selectTicket = new NpgsqlCommand("SELECT id FROM ticket" +
+                    " WHERE name=:ticket_name", conn);
+
+                var ticket_name_db = new NpgsqlParameter(":ticket_name", DbType.String);
+                ticket_name_db.Value = ticket_name;
+                selectTicket.Parameters.Add(ticket_name_db);
+
+                selectTicket.Prepare();
+
+                int ticketId = (int) selectTicket.ExecuteScalar();
+
                 SaleTicket saleTicket = new SaleTicket
                 {
                     sale_id = saleId,
                     ticket_id = ticketId,
-                    amount = 1
+                    amount = amount
                 };
 
                 NpgsqlCommand addSaleTicket = new NpgsqlCommand("insert into sale_ticket (amount,sale_id,ticket_id) " +

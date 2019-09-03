@@ -9,7 +9,7 @@ namespace DatabaseConnection.Repositories
 {
     public interface ISaleRepository : IRepository<Sale>
     {
-        bool AddSale(string from_station, string to_station, int route_id, int traveller_id);
+        bool AddSale(string from_station, string to_station, int route_id, int traveller_id, short amount, string ticket_name);
 
         List<Sale> GetUserTickets(int user_id);
     }
